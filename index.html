@@ -47,10 +47,7 @@
     <div class="bg-white rounded-3xl shadow-xl p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold">📋 Riwayat Absensi</h2>
-        <button onclick="clearHistory()" 
-                class="text-red-600 text-sm font-medium hover:underline">
-          Hapus Semua Riwayat
-        </button>
+        <button onclick="clearHistory()" class="text-red-600 text-sm hover:underline">Hapus Semua</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -69,18 +66,18 @@
   </div>
 
   <script>
+    const karyawan = ["Farhan", "Adit"];
     let selectedNama = "";
     let absensiData = [];
 
     const kantorLat = -6.2088;
     const kantorLon = 106.6160;
     const radiusMeter = 100;
-
+    const adminPassword = "Artomoro123";
     const allowedWifiMAC = "6A:FA:28:5B:15:F9".toLowerCase();
-    const allowedAdmins = ["reva", "dwi", "birza"];
 
     function renderEmployeeList() {
-      document.getElementById('employee-list').innerHTML = ["Farhan", "Adit"].map(nama => `
+      document.getElementById('employee-list').innerHTML = karyawan.map(nama => `
         <button onclick="pilihNama('${nama}')" class="px-6 py-5 bg-gray-100 hover:bg-blue-100 rounded-3xl text-lg font-medium border-2">
           ${nama}
         </button>
@@ -113,28 +110,29 @@
 
     async function checkWifiConnection() {
       const userMAC = prompt("Masukkan MAC Address WiFi yang sedang digunakan:") || "";
+      
       if (userMAC.trim().toLowerCase() === allowedWifiMAC) {
         return true;
       } else {
-        alert(`❌ WiFi tidak sesuai!\nMAC yang diizinkan: ${allowedWifiMAC}`);
+        alert("❌ WiFi tidak sesuai dengan kantor.\nPastikan Anda terhubung ke WiFi kantor.");
         return false;
       }
     }
 
     async function absenMasuk() {
-      const inputID = prompt("Masukkan ID Admin untuk bypass\n(kosongkan jika karyawan biasa):").trim().toLowerCase();
+      const inputPass = prompt("Masukkan Password Admin (kosongkan jika karyawan biasa):");
 
-      if (inputID !== "") {
-        if (allowedAdmins.includes(inputID)) {
-          selectedNama = inputID.toUpperCase();   // Nama = ID yang diketik
-          prosesAbsen(` (Admin: ${selectedNama})`);
-          return;
-        } else {
-          alert("❌ ID Admin tidak valid!\nHanya reva, dwi, atau birza yang diizinkan.");
-          return;
-        }
+      if (inputPass === adminPassword) {
+        const namaInput = prompt("Masukkan nama yang akan diabsenkan:").trim();
+        
+        if (!namaInput) return alert("❌ Nama tidak boleh kosong!");
+        
+        selectedNama = namaInput;
+        prosesAbsen(` (Admin Bypass)`);
+        return;
       }
 
+      // Karyawan Biasa
       if (!selectedNama) {
         return alert("❌ Pilih nama karyawan dulu dari daftar di atas!");
       }
