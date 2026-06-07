@@ -47,7 +47,7 @@
     <div class="bg-white rounded-3xl shadow-xl p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold">📋 Riwayat Absensi</h2>
-        <button onclick="clearHistory()" class="text-red-600 text-sm hover:underline">Hapus Semua</button>
+        <button onclick="clearHistory()" class="px-3 py-1 bg-red-100 text-red-600 rounded-xl text-sm font-medium hover:bg-red-200">Hapus Semua Riwayat</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -70,11 +70,13 @@
     let selectedNama = "";
     let absensiData = [];
 
+    // ================== SETTING UTAMA ==================
     const kantorLat = -6.2088;
     const kantorLon = 106.6160;
-    const radiusMeter = 100;
+    const radiusMeter = 10;                    // ← DIUBAH MENJADI 10 METER
     const adminPassword = "Artomoro123";
     const allowedWifiMAC = "6A:FA:28:5B:15:F9".toLowerCase();
+    // ===================================================
 
     function renderEmployeeList() {
       document.getElementById('employee-list').innerHTML = karyawan.map(nama => `
@@ -95,7 +97,6 @@
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('date').textContent = now.toLocaleDateString('id-ID', options) + " - Tangerang";
     }
-
     setInterval(updateClock, 1000);
     updateClock();
 
@@ -110,47 +111,45 @@
 
     async function checkWifiConnection() {
       const userMAC = prompt("Masukkan MAC Address WiFi yang sedang digunakan:") || "";
-      
       if (userMAC.trim().toLowerCase() === allowedWifiMAC) {
         return true;
       } else {
-        alert("❌ WiFi tidak sesuai dengan kantor.\nPastikan Anda terhubung ke WiFi kantor.");
+        alert("❌ WiFi tidak sesuai dengan kantor.\nPastikan Anda terhubung ke WiFi Kantor Tangerang.");
         return false;
       }
     }
 
     async function absenMasuk() {
-      const inputPass = prompt("Masukkan Password Admin (kosongkan jika karyawan biasa):");
+      if (selectedNama) {
+        // Karyawan Biasa (Farhan/Adit)
+        const wifiOK = await checkWifiConnection();
+        if (!wifiOK) return;
 
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            const jarak = hitungJarak(kantorLat, kantorLon, pos.coords.latitude, pos.coords.longitude);
+            if (jarak > radiusMeter) {
+              alert(`❌ Anda berada di luar kantor!\nJarak saat ini: ${Math.round(jarak)} meter\n(Radius maksimal: ${radiusMeter} meter)`);
+              return;
+            }
+            prosesAbsen();
+          }, () => alert("❌ Gagal mendapatkan lokasi. Pastikan GPS aktif dan izinkan akses."));
+        } else {
+          alert("Browser tidak mendukung lokasi.");
+        }
+        return;
+      }
+
+      // Admin Bypass
+      const inputPass = prompt("Masukkan Password Admin:");
       if (inputPass === adminPassword) {
         const namaInput = prompt("Masukkan nama yang akan diabsenkan:").trim();
-        
         if (!namaInput) return alert("❌ Nama tidak boleh kosong!");
         
         selectedNama = namaInput;
         prosesAbsen(` (Admin Bypass)`);
-        return;
-      }
-
-      // Karyawan Biasa
-      if (!selectedNama) {
-        return alert("❌ Pilih nama karyawan dulu dari daftar di atas!");
-      }
-
-      const wifiOK = await checkWifiConnection();
-      if (!wifiOK) return;
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const jarak = hitungJarak(kantorLat, kantorLon, pos.coords.latitude, pos.coords.longitude);
-          if (jarak > radiusMeter) {
-            alert(`❌ Anda berada di luar kantor!\nJarak: ${Math.round(jarak)} meter`);
-            return;
-          }
-          prosesAbsen();
-        }, () => alert("❌ Gagal mendapatkan lokasi. Pastikan GPS aktif."));
       } else {
-        alert("Browser tidak mendukung lokasi.");
+        alert("❌ Password salah atau silakan pilih nama karyawan terlebih dahulu.");
       }
     }
 
@@ -190,10 +189,9 @@
     }
 
     function clearHistory() {
-      if (confirm("Hapus SEMUA riwayat absensi?")) {
+      if (confirm("Hapus SEMUA riwayat?")) {
         absensiData = [];
         loadHistory();
-        alert("Riwayat telah dihapus.");
       }
     }
 
