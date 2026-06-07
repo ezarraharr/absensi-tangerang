@@ -107,52 +107,47 @@
       return R * c;
     }
 
-    // Cek koneksi WiFi (MAC Address)
+    // Cek koneksi WiFi (simulasi)
     async function checkWifiConnection() {
-      try {
-        // Catatan: Browser modern membatasi akses ke MAC Address karena alasan keamanan.
-        // Kode ini menggunakan Network Information API + simulasi.
-        if ('connection' in navigator) {
-          const connection = navigator.connection;
-          if (connection.effectiveType) {
-            // Untuk testing, kita bisa simulasi dulu. Di production, sebaiknya pakai aplikasi native.
-            console.log("Network type:", connection.effectiveType);
-          }
-        }
-        
-        // Simulasi pengecekan MAC (karena browser tidak bisa baca MAC langsung)
-        // Di aplikasi production, ini harus diganti dengan aplikasi Android/iOS
-        const userMAC = prompt("Masukkan MAC Address WiFi yang sedang digunakan (untuk simulasi):") || "";
-        
-        if (userMAC.trim().toLowerCase() === allowedWifiMAC) {
-          return true;
-        } else {
-          alert(`❌ WiFi tidak sesuai!\n\nMAC Address yang diizinkan: ${allowedWifiMAC}\nMAC Anda: ${userMAC || "(tidak terdeteksi)"}`);
-          return false;
-        }
-      } catch (e) {
-        alert("❌ Gagal mendeteksi WiFi.");
+      const userMAC = prompt("Masukkan MAC Address WiFi yang sedang digunakan:") || "";
+      
+      if (userMAC.trim().toLowerCase() === allowedWifiMAC) {
+        return true;
+      } else {
+        alert(`❌ WiFi tidak sesuai!\n\nMAC Address yang diizinkan: ${allowedWifiMAC}\nMAC Anda: ${userMAC || "(tidak terdeteksi)"}`);
         return false;
       }
     }
 
     async function absenMasuk() {
-      if (!selectedNama) return alert("❌ Pilih nama dulu!");
-
-      const inputID = prompt("Masukkan ID Admin untuk bypass (kosongkan jika karyawan biasa):").trim().toLowerCase();
+      // Ambil input Admin ID terlebih dahulu
+      const inputID = prompt("Masukkan ID Admin untuk bypass\n(kosongkan jika karyawan biasa):").trim().toLowerCase();
 
       // === ADMIN BYPASS ===
       if (inputID !== "") {
         if (allowedAdmins.includes(inputID)) {
+          // Admin tidak perlu pilih nama dari list
+          const adminNama = prompt("Masukkan nama karyawan yang akan diabsenkan:").trim();
+          
+          if (!adminNama) {
+            return alert("❌ Nama karyawan tidak boleh kosong!");
+          }
+
+          selectedNama = adminNama;
+          
           prosesAbsen(` (Admin: ${inputID.toUpperCase()})`);
           return;
         } else {
-          alert("❌ ID Admin tidak valid!");
+          alert("❌ ID Admin tidak valid!\nHanya reva, dwi, atau birza yang diizinkan.");
           return;
         }
       }
 
       // === KARYAWAN BIASA ===
+      if (!selectedNama) {
+        return alert("❌ Pilih nama karyawan dulu dari daftar di atas!");
+      }
+
       const wifiOK = await checkWifiConnection();
       if (!wifiOK) return;
 
