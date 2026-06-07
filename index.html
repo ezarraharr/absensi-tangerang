@@ -45,7 +45,13 @@
     </div>
 
     <div class="bg-white rounded-3xl shadow-xl p-6">
-      <h2 class="text-xl font-semibold mb-4">📋 Riwayat Absensi</h2>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">📋 Riwayat Absensi</h2>
+        <button onclick="clearHistory()" 
+                class="text-red-600 text-sm font-medium hover:underline">
+          Hapus Semua Riwayat
+        </button>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50">
@@ -63,7 +69,6 @@
   </div>
 
   <script>
-    const karyawan = ["Farhan", "Adit"];
     let selectedNama = "";
     let absensiData = [];
 
@@ -75,7 +80,7 @@
     const allowedAdmins = ["reva", "dwi", "birza"];
 
     function renderEmployeeList() {
-      document.getElementById('employee-list').innerHTML = karyawan.map(nama => `
+      document.getElementById('employee-list').innerHTML = ["Farhan", "Adit"].map(nama => `
         <button onclick="pilihNama('${nama}')" class="px-6 py-5 bg-gray-100 hover:bg-blue-100 rounded-3xl text-lg font-medium border-2">
           ${nama}
         </button>
@@ -121,7 +126,7 @@
 
       if (inputID !== "") {
         if (allowedAdmins.includes(inputID)) {
-          selectedNama = inputID.toUpperCase();   // ← Nama = ID yang diketik
+          selectedNama = inputID.toUpperCase();   // Nama = ID yang diketik
           prosesAbsen(` (Admin: ${selectedNama})`);
           return;
         } else {
@@ -130,7 +135,6 @@
         }
       }
 
-      // Karyawan Biasa
       if (!selectedNama) {
         return alert("❌ Pilih nama karyawan dulu dari daftar di atas!");
       }
@@ -185,6 +189,14 @@
             <td class="py-3 px-4 font-medium">${r.nama}</td>
             <td class="py-3 px-4">${r.status}</td>
           </tr>`).join('');
+    }
+
+    function clearHistory() {
+      if (confirm("Hapus SEMUA riwayat absensi?")) {
+        absensiData = [];
+        loadHistory();
+        alert("Riwayat telah dihapus.");
+      }
     }
 
     window.onload = () => { 
