@@ -121,10 +121,8 @@
 
       if (inputID !== "") {
         if (allowedAdmins.includes(inputID)) {
-          const adminID = inputID.toUpperCase();
-          selectedNama = adminID;   // Nama yang dicatat = ID Admin
-          
-          prosesAbsen(` (Admin: ${adminID})`);
+          selectedNama = inputID.toUpperCase();   // ← Nama = ID yang diketik
+          prosesAbsen(` (Admin: ${selectedNama})`);
           return;
         } else {
           alert("❌ ID Admin tidak valid!\nHanya reva, dwi, atau birza yang diizinkan.");
