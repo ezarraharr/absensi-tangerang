@@ -4,47 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#1e40af">
-  <title>Absensi Karyawan</title>
+  <title>Absensi Tangerang</title>
  
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/837/837560.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { 
-      font-family: 'Segoe UI', system-ui, sans-serif; 
-      background: #f3f4f6;
-    }
-    .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; }
+    .card { background: white; border-radius: 20px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
     .clock { font-size: 3.2rem; font-weight: 700; }
   </style>
 </head>
 <body class="min-h-screen pb-8">
   <div class="max-w-lg mx-auto px-4 py-6">
 
-    <!-- Header -->
     <div class="card p-6 text-center mb-6">
       <h1 class="text-3xl font-bold text-blue-700">📋 Absensi Karyawan</h1>
       <p class="text-gray-600 mt-1">Kantor Tangerang</p>
     </div>
 
-    <!-- Clock -->
     <div class="card p-6 text-center mb-6">
       <p class="text-gray-600">Waktu Sekarang</p>
       <div id="clock" class="clock text-blue-600"></div>
       <div id="date" class="text-lg text-gray-700 mt-2"></div>
     </div>
 
-    <!-- Pilih Nama Karyawan -->
+    <!-- Pilih Nama -->
     <div class="card p-6 mb-6">
       <h2 class="text-xl font-semibold text-center mb-4">Pilih Nama Karyawan</h2>
       <div class="grid grid-cols-2 gap-4" id="employee-list"></div>
     </div>
 
-    <!-- Absen Masuk -->
+    <!-- Absen -->
     <div class="card p-6 mb-6">
       <h2 class="text-xl font-semibold text-center mb-4">Absen Masuk</h2>
       <div class="text-center mb-6">
@@ -77,11 +67,10 @@
         </table>
       </div>
     </div>
-
   </div>
 
   <script>
-    const karyawan = ["Farhan", "Adit"];   // ← Pilihan nama karyawan
+    const karyawan = ["Farhan", "Adit"];
     let selectedNama = "";
     let absensiData = [];
 
@@ -91,12 +80,15 @@
     const adminPassword = "Artomoro123";
 
     function renderEmployeeList() {
-      document.getElementById('employee-list').innerHTML = karyawan.map(nama => `
-        <button onclick="pilihNama('${nama}')" 
-                class="w-full py-6 bg-gray-100 hover:bg-blue-100 active:bg-blue-200 rounded-3xl text-lg font-medium border-2 border-gray-200">
-          ${nama}
-        </button>
-      `).join('');
+      const container = document.getElementById('employee-list');
+      container.innerHTML = ''; // bersihkan dulu
+      karyawan.forEach(nama => {
+        const btn = document.createElement('button');
+        btn.className = "px-6 py-5 bg-gray-100 hover:bg-blue-100 rounded-3xl text-lg font-medium border-2 border-gray-200 active:bg-blue-200";
+        btn.textContent = nama;
+        btn.onclick = () => pilihNama(nama);
+        container.appendChild(btn);
+      });
     }
 
     function pilihNama(nama) {
@@ -110,8 +102,6 @@
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('date').textContent = now.toLocaleDateString('id-ID', options) + " - Tangerang";
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
     function hitungJarak(lat1, lon1, lat2, lon2) {
       const R = 6371000;
@@ -129,35 +119,32 @@
           navigator.geolocation.getCurrentPosition(pos => {
             const jarak = hitungJarak(kantorLat, kantorLon, pos.coords.latitude, pos.coords.longitude);
             if (jarak > radiusMeter) {
-              alert(`❌ Anda berada di luar kantor!\nJarak saat ini: ${Math.round(jarak)} meter\n(Radius maksimal: 10 meter)`);
+              alert(`❌ Anda berada di luar kantor!\nJarak: ${Math.round(jarak)} meter (Maksimal 10 meter)`);
               return;
             }
             prosesAbsen();
-          }, () => alert("❌ Gagal mendapatkan lokasi.\nPastikan GPS aktif dan izinkan akses lokasi."));
-        } else {
-          alert("Browser tidak mendukung lokasi.");
+          }, () => alert("❌ Gagal mendapatkan lokasi.\nPastikan GPS aktif."));
         }
         return;
       }
 
       // Admin Bypass
-      const inputPass = prompt("Masukkan Password Admin:");
-      if (inputPass === adminPassword) {
-        const namaInput = prompt("Masukkan nama yang akan diabsenkan:").trim();
-        if (!namaInput) return alert("❌ Nama tidak boleh kosong!");
-        
-        selectedNama = namaInput;
-        prosesAbsen(` (Admin Bypass)`);
+      const pass = prompt("Masukkan Password Admin:");
+      if (pass === adminPassword) {
+        const nama = prompt("Masukkan nama yang akan diabsenkan:").trim();
+        if (nama) {
+          selectedNama = nama;
+          prosesAbsen(` (Admin Bypass)`);
+        }
       } else {
-        alert("❌ Password salah atau silakan pilih nama karyawan terlebih dahulu.");
+        alert("Password salah.");
       }
     }
 
     function prosesAbsen(bypass = "") {
       const now = new Date();
       const waktu = now.toLocaleTimeString('id-ID', { hour12: false });
-      const status = (now.getHours() < 8 || (now.getHours() === 8 && now.getMinutes() <= 0))
-        ? "✅ Tidak Terlambat" : "⚠️ Terlambat";
+      const status = (now.getHours() < 8 || (now.getHours() === 8 && now.getMinutes() <= 0)) ? "✅ Tidak Terlambat" : "⚠️ Terlambat";
 
       absensiData.unshift({
         tanggal: now.toLocaleDateString('id-ID'),
@@ -165,7 +152,7 @@
         nama: selectedNama,
         status: status + bypass
       });
-     
+
       document.getElementById('result').innerHTML = `
         <div class="p-5 rounded-3xl bg-green-50 border border-green-200">
           <p class="text-2xl font-bold text-green-600">${status}</p>
@@ -177,7 +164,7 @@
 
     function loadHistory() {
       const tbody = document.getElementById('history');
-      tbody.innerHTML = absensiData.length === 0
+      tbody.innerHTML = absensiData.length === 0 
         ? `<tr><td colspan="4" class="text-center py-8 text-gray-500">Belum ada riwayat</td></tr>`
         : absensiData.map(r => `
           <tr class="hover:bg-gray-50">
@@ -189,15 +176,18 @@
     }
 
     function clearHistory() {
-      if (confirm("Hapus SEMUA riwayat?")) {
+      if (confirm("Hapus semua riwayat?")) {
         absensiData = [];
         loadHistory();
       }
     }
 
-    window.onload = () => { 
-      renderEmployeeList(); 
-      loadHistory(); 
+    // Jalankan saat halaman selesai dimuat
+    window.onload = function() {
+      renderEmployeeList();
+      updateClock();
+      setInterval(updateClock, 1000);
+      loadHistory();
     };
   </script>
 </body>
